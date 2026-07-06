@@ -1,0 +1,8 @@
+﻿{
+    "python.defaultInterpreterPath": "C:\\Users\\anays\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "python.analysis.extraPaths": [
+        "C:\\Users\\anays\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages"
+    ],
+    "python.analysis.pythonPath": "C:\\Users\\anays\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "python.pythonPath": "C:\\Users\\anays\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
+}
