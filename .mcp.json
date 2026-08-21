@@ -9,7 +9,7 @@
       "env": {
         "JET_WORKSPACE": "c:\\Users\\anays\\OneDrive\\Desktop\\egarch adaptive",
         "JET_API_URL": "https://api.jetro.ai",
-        "PATH": "C:\\Users\\anays\\.jetro\\runtime;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\dotnet\\;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\Users\\anays\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\anays\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\anays\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\anays\\AppData\\Roaming\\npm;C:\\Users\\anays\\AppData\\Local\\Programs\\Antigravity IDE\\bin"
+        "PATH": "C:\\Users\\anays\\.jetro\\runtime;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\dotnet\\;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\GitHub CLI\\;C:\\Users\\anays\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\anays\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\anays\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\anays\\AppData\\Roaming\\npm;C:\\Users\\anays\\AppData\\Local\\Programs\\Antigravity IDE\\bin;C:\\Users\\anays\\.local\\bin"
       }
     }
   }
