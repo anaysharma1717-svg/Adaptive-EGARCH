@@ -240,11 +240,12 @@ def walk_forward(data, test_months=18, refit_freq=21, min_train=500, sim_paths=5
     test_dates = test_data.index
     log.info(f"Test: {test_dates[0].date()} -> {test_dates[-1].date()} ({len(test_dates)} obs)")
 
-    results = {name: [] for name in list(MODELS.keys()) + ["M2 EGARCH", "M3 Combined"]}
+    results = {name: [] for name in list(MODELS.keys()) + ["M2 EGARCH", "M2b Corrected EGARCH", "M3 Combined"]}
     actuals = []
 
     eg_params = None
     comb_coef = None
+    eg_alpha, eg_beta = 0.0, 1.0
 
     for i, tdate in enumerate(test_dates):
         hist = data[data.index < tdate]
@@ -267,9 +268,17 @@ def walk_forward(data, test_months=18, refit_freq=21, min_train=500, sim_paths=5
             # Fit Combined (HAR features + EGARCH sigma)
             eg_cv = eg_res.conditional_volatility.values
             n_a = min(len(eg_cv), len(hist))
+            
+            # MZ Correction for EGARCH in-sample
+            X_mz = np.column_stack([np.ones(n_a), eg_cv[-n_a:]])
+            y_mz = hist["rv"].values[-n_a:]
+            beta_hat_mz = np.linalg.lstsq(X_mz, y_mz, rcond=None)[0]
+            eg_alpha, eg_beta = float(beta_hat_mz[0]), float(beta_hat_mz[1])
+            eg_cv_corr = eg_alpha + eg_beta * eg_cv[-n_a:]
+            
             X_comb = np.column_stack([
                 hist[["rv1", "rv2", "rv5", "rv22"]].values[-n_a:],
-                eg_cv[-n_a:]
+                eg_cv_corr
             ])
             y_comb = hist["rv"].values[-n_a:]
             comb_mod = LinearRegression().fit(X_comb, y_comb)
@@ -292,9 +301,13 @@ def walk_forward(data, test_months=18, refit_freq=21, min_train=500, sim_paths=5
         except Exception:
             eg_pred = eg_sigma
         results["M2 EGARCH"].append(max(eg_pred, 1e-4))
+        
+        # M2b Corrected EGARCH
+        eg_pred_corr = eg_alpha + eg_beta * eg_pred
+        results["M2b Corrected EGARCH"].append(max(eg_pred_corr, 1e-4))
 
         # M3 Combined
-        x_comb = np.array([row["rv1"], row["rv2"], row["rv5"], row["rv22"], eg_sigma])
+        x_comb = np.array([row["rv1"], row["rv2"], row["rv5"], row["rv22"], eg_pred_corr])
         comb_pred = float(comb_coef[0] + np.dot(comb_coef[1], x_comb))
         results["M3 Combined"].append(max(comb_pred, 1e-4))
 
@@ -342,26 +355,25 @@ def full_report(actuals, results, test_dates):
         marker = " <-- BEST" if r == 1 else ""
         print(f"  {name:<20} {m['RMSE']:>10.4f} {m['MAE']:>10.4f} {m['QLIKE']:>10.4f} {r:>10}{marker}")
 
-    # ── B. DM Tests vs Best HAR model ────────────────────────────
-    best_name = ranked[0]
-    best_fc = results[best_name]
-    print(f"\n  B. DIEBOLD-MARIANO TESTS vs {best_name}")
+    # ── B. DM Tests vs M1 HAR+TS ────────────────────────────────
+    m1_fc = results["M1 HAR+TS"]
+    print(f"\n  B. DIEBOLD-MARIANO TESTS vs M1 HAR+TS")
     print(f"  {s}")
     print(f"  {'Challenger':<20} {'Loss':>6} {'DM stat':>10} {'p-value':>10} {'Sig':>5} {'Result':<20}")
     print(f"  {s}")
     for name in sorted(results.keys()):
-        if name == best_name:
+        if name == "M1 HAR+TS":
             continue
         fc = results[name]
-        for loss in ("mse",):
-            stat, pval = dm_test(actuals, best_fc, fc, loss=loss)
+        for loss in ("mse", "qlike"):
+            stat, pval = dm_test(actuals, m1_fc, fc, loss=loss)
             sig = "***" if pval < 0.01 else "**" if pval < 0.05 else "*" if pval < 0.10 else ""
-            if stat > 0 and pval < 0.10:
-                res = f"WORSE than {best_name}"
-            elif stat < 0 and pval < 0.10:
-                res = f"BETTER than {best_name}"
+            if stat < 0 and pval < 0.05:
+                res = f"WORSE than M1"
+            elif stat > 0 and pval < 0.05:
+                res = f"BETTER than M1"
             else:
-                res = "No sig. difference"
+                res = "Indistinguishable"
             print(f"  {name:<20} {loss.upper():>6} {stat:>+10.3f} {pval:>10.4f} {sig:>5} {res:<20}")
 
     # ── C. Mincer-Zarnowitz Efficiency ───────────────────────────
@@ -380,6 +392,8 @@ def full_report(actuals, results, test_dates):
     print(f"     actual = l1*f1 + l2*f2 + eps")
     print(f"     If l2 p-val > 0.05 => f1 encompasses f2 (f2 adds nothing)")
     print(f"  {s}")
+    
+    best_name = ranked[0]
     # Test key pairs
     pairs = [
         ("M1 HAR+TS", "M2 EGARCH"),
@@ -421,6 +435,25 @@ def full_report(actuals, results, test_dates):
         mae_q = float(np.mean(np.abs(actuals[calm_mask] - fc[calm_mask])))
         print(f"  {name:<20} {rmse_c:>14.4f} {rmse_q:>14.4f} {mae_c:>14.4f} {mae_q:>14.4f}")
 
+    # ── E2. Crisis Subsample DM Tests ────────────────────────────
+    print(f"\n  E2. CRISIS SUBSAMPLE DM TESTS vs M1 HAR+TS")
+    print(f"  {s}")
+    print(f"  {'Model':<20} {'Loss':>6} {'DM stat':>10} {'p-value':>10} {'Result':<20}")
+    print(f"  {s}")
+    a_c = actuals[crisis_mask]
+    m1_c = m1_fc[crisis_mask]
+    for name in ["M2 EGARCH", "M2b Corrected EGARCH", "M3 Combined"]:
+        fc_c = results[name][crisis_mask]
+        for loss in ("mse", "qlike"):
+            stat, pval = dm_test(a_c, m1_c, fc_c, loss=loss)
+            if stat < 0 and pval < 0.05:
+                res = f"WORSE than M1"
+            elif stat > 0 and pval < 0.05:
+                res = f"BETTER than M1"
+            else:
+                res = "Indistinguishable"
+            print(f"  {name:<20} {loss.upper():>6} {stat:>+10.3f} {pval:>10.4f} {res:<20}")
+
     # ── F. Residual Diagnostics ──────────────────────────────────
     print(f"\n  F. RESIDUAL DIAGNOSTICS (lag=20)")
     print(f"  {s}")
@@ -460,7 +493,7 @@ def full_report(actuals, results, test_dates):
         if name == "M1 HAR+TS":
             continue
         stat, pval = dm_test(actuals, m1_fc, results[name], loss="mse")
-        if stat < 0 and pval < 0.05:
+        if stat > 0 and pval < 0.05:
             print(f"  [+] {name} SIGNIFICANTLY BEATS M1 HAR+TS (DM stat={stat:+.3f}, p={pval:.4f})")
             any_wins = True
     if not any_wins:
