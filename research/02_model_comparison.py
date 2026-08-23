@@ -1,6 +1,12 @@
 """
 STAGE 2 -- The 8-model comparison (+ M2/M2b/M3).
 
+WHAT THIS SCRIPT ACTUALLY DOES: recomputes metrics/DM/MZ from saved
+forecasts (does not re-fit models). It loads research/results/
+baseline_confirm_forecasts.csv -- already-generated per-day forecasts -- and
+derives RMSE/MAE/QLIKE/DM/MZ from that fixed data. The models themselves
+were fit by research/pipeline/extended_model_zoo.py, not here.
+
 Question this stage answers: of nine reasonable ways to forecast next-day
 volatility, which one is best, and by how much?
 
@@ -34,7 +40,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pipeline"))
 from extended_model_zoo import qlike, dm_test, mincer_zarnowitz
 
 SRC = os.path.join("research", "results", "baseline_confirm_forecasts.csv")

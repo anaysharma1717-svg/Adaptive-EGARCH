@@ -1,6 +1,13 @@
 """
 STAGE 4 -- The bias-correction chain: M2b -> M2c -> M2d -> M2e.
 
+WHAT THIS SCRIPT ACTUALLY DOES: mostly reprints saved summary results;
+recomputes one DM test. Nearly everything below is research/results/*.csv
+loaded and reprinted verbatim; the one exception is the M2c-vs-raw-M2 crisis
+DM test, recomputed here from a saved per-day CSV because it was never saved
+as its own row originally. The actual walk-forward that produced M2b/M2c/
+M2d/M2e lives in research/pipeline/stepB1-4_*.py.
+
 Question this stage answers: raw EGARCH has a real crisis-QLIKE edge over
 HAR (stage 3, Test B). The standard fix for EGARCH's known bias -- a
 Mincer-Zarnowitz (MZ) correction -- is already part of M2b/M3. Does that
@@ -54,7 +61,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pipeline"))
 from extended_model_zoo import dm_test
 
 RES = os.path.join("research", "results")

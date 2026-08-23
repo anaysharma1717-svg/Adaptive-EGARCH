@@ -1,6 +1,12 @@
 """
 STAGE 3 -- The crisis-regime test(s).
 
+WHAT THIS SCRIPT ACTUALLY DOES: recomputes DM tests from saved forecasts. It
+loads two already-saved per-day forecast CSVs (task1_labeled_forecasts.csv,
+taskA_m9_forecasts_weights_losses.csv) and runs dm_test() on that fixed
+data. The forecasts themselves came from research/pipeline/task1_dm_
+significance.py and research/pipeline/taskA_m9_regime_eval.py.
+
 Question this stage answers: does model performance differ between calm and
 turbulent markets, and specifically -- is there a real, exploitable edge
 hiding in the crisis subsample that an overall-sample comparison would miss?
@@ -30,7 +36,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pipeline"))
 from extended_model_zoo import dm_test
 
 OUT_DIR = os.path.join("research", "results", "03_crisis_regime_test")

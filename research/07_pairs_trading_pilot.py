@@ -1,6 +1,13 @@
 """
 STAGE 7 -- Pairs-trading pilot (shelved, null result).
 
+WHAT THIS SCRIPT ACTUALLY DOES: reprints saved results only. NOTE: the
+original task1_*.py/task1b_*.py driver scripts for this pilot were already
+removed in an earlier cleanup pass (data + results were kept, intermediate
+scripts were not, per an explicit scope decision at the time) -- they are
+NOT in research/pipeline/ and cannot be pointed to. See
+research/pairs_trading/results/ for the underlying data this reprints.
+
 Question this stage answers: separate from the volatility-forecasting work
 above, is there a viable statistical-arbitrage pair among six hand-picked,
 economically-linked futures pairs?

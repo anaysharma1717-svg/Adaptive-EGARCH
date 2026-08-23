@@ -1,6 +1,11 @@
 """
 STAGE 6 -- Robustness-check appendix: h=5 horizon replication + FOMC dummy.
 
+WHAT THIS SCRIPT ACTUALLY DOES: reprints saved results only -- see
+research/pipeline/appendix_h5_and_macro.py for the actual computation.
+Nothing below is recomputed; this is a read-and-display of already-saved
+CSVs.
+
 Question this stage answers: two sanity checks on the headline finding
 (stages 3-5), run AFTER the main investigation concluded, to see if it's
 fragile to two obvious variations.

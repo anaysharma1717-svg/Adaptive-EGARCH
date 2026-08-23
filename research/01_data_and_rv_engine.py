@@ -1,6 +1,12 @@
 """
 STAGE 1 -- Data and the Realized-Volatility engine.
 
+WHAT THIS SCRIPT ACTUALLY DOES: recomputes from raw data. It re-fetches SPY
+and rebuilds the RV series and ACF/PACF from scratch -- this is the one
+script in research/ (top level) that does not depend on any already-saved
+CSV. For the scripts that originally computed everything downstream of this,
+see research/pipeline/.
+
 Question this stage answers: what are we actually forecasting, and why is it
 measured this way?
 
@@ -24,7 +30,7 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import acf, pacf
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pipeline"))
 from extended_model_zoo import fetch_data, compute_features
 
 OUT_DIR = os.path.join("research", "results", "01_data_rv_engine")

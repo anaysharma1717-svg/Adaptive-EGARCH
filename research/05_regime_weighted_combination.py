@@ -1,6 +1,12 @@
 """
 STAGE 5 -- The combination-model chain: M9 -> M9c -> M9d -> M9e.
 
+WHAT THIS SCRIPT ACTUALLY DOES: reprints saved results only -- see
+research/pipeline/taskA_m9_regime_eval.py and research/pipeline/
+stepB2_m2c_m9c.py / stepB3_m2d_m9d.py / stepB4_m2e_m9e.py for the actual
+computation. Nothing below is recomputed; this is a read-and-display of
+already-saved CSVs.
+
 Question this stage answers: stage 3 found raw EGARCH beats HAR in crisis.
 Can a SMOOTH (not hard-switched) combination of the two exploit that
 regime-dependent advantage better than the static M3 combination (stage 2)

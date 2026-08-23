@@ -104,21 +104,30 @@ A separate, smaller pilot, not connected to the volatility-forecasting work abov
 
 ## 8. How to reproduce
 
-Two layers. The **read layer** (`research/01_*.py`–`07_*.py`) reproduces every number above from already-saved CSVs in `research/results/` — fast, deterministic, no EGARCH refitting. The **compute layer** (`extended_model_zoo.py` plus the `stepB*`/`taskA*`/`task1*`/`task3*`/`appendix_h5_and_macro.py` scripts) is what originally produced those numbers by actually fitting/refitting EGARCH via simulation — slower, and reintroduces small Monte Carlo noise run-to-run since EGARCH's multi-step forecast has no closed form.
+`research/pipeline/` contains the original analysis scripts, run in sequence (see `research/pipeline/README.md` for the exact order — Task 1 → Task 3 → Task 4/Task A → Step 1 → Step 2 → Step 3 → Step 4 → h=5/FOMC appendix → pairs pilot), that produced every result in this project.
 
-| Result | Script |
-|---|---|
-| §1 Data, RV, ACF/PACF | `research/01_data_and_rv_engine.py` |
-| §3 8-model comparison | `research/02_model_comparison.py` |
-| §3 crisis DM test | `research/03_crisis_regime_test.py` |
-| §4 correction chain (M2b–M2e) | `research/04_bias_correction_chain.py` |
-| §4 combination chain (M9–M9e) | `research/05_regime_weighted_combination.py` |
-| §5 h=5 / FOMC appendix | `research/06_horizon_and_calendar_appendix.py` |
-| §6 pairs-trading pilot | `research/07_pairs_trading_pilot.py` |
+`research/01-07` are a **verification/walkthrough layer**, not the analysis itself: `01` reproduces the volatility engine from scratch (re-fetches data, rebuilds RV and ACF/PACF); `02-04` recompute statistical tests (metrics, DM tests, MZ regressions) from already-saved forecasts, without re-fitting any model; `05-07` display already-computed results as-is, each with a pointer in its own docstring to the exact `research/pipeline/` script that actually produced what it's showing.
+
+| Result | Verification script | Original computation |
+|---|---|---|
+| §1 Data, RV, ACF/PACF | `research/01_data_and_rv_engine.py` | *(recomputes from raw data itself)* |
+| §3 8-model comparison | `research/02_model_comparison.py` | `research/pipeline/extended_model_zoo.py` |
+| §3 crisis DM test | `research/03_crisis_regime_test.py` | `research/pipeline/task1_dm_significance.py`, `taskA_m9_regime_eval.py` |
+| §4 correction chain (M2b–M2e) | `research/04_bias_correction_chain.py` | `research/pipeline/stepB1-4_*.py` |
+| §4 combination chain (M9–M9e) | `research/05_regime_weighted_combination.py` | `research/pipeline/taskA_m9_regime_eval.py`, `stepB2-4_*.py` |
+| §5 h=5 / FOMC appendix | `research/06_horizon_and_calendar_appendix.py` | `research/pipeline/appendix_h5_and_macro.py` |
+| §6 pairs-trading pilot | `research/07_pairs_trading_pilot.py` | *(driver scripts already removed — see `research/pairs_trading/results/`)* |
 
 ```bash
 pip install -r requirements.txt
+
+# verification layer -- fast, replays already-saved numbers
 python research/01_data_and_rv_engine.py   # ... through 07_pairs_trading_pilot.py
+
+# pipeline -- slow, actually re-fits/refits models against real data
+python research/pipeline/extended_model_zoo.py
+python research/pipeline/task1_dm_significance.py
+# ... see research/pipeline/README.md for the rest, in order
 ```
 
 **Dependencies** (`requirements.txt`): `yfinance`, `arch` (EGARCH/GARCH), `scikit-learn` (OLS/Ridge), `statsmodels` (ADF, ACF/PACF, Ljung-Box), `scipy` (DM/MZ test statistics, QLIKE numerical fitting), `pandas`, `numpy`, `matplotlib`.
