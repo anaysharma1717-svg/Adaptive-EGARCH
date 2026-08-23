@@ -95,6 +95,13 @@ def compute_features(df):
     d["ret_lag"]     = d["return"].shift(1)
     d["abs_ret_lag"] = np.abs(d["return"].shift(1))
 
+    # Task 4 (M9): rolling percentile rank of rv1 within its OWN trailing 252-day
+    # window. rv1 is already t-1-lagged; the comparison window is rv1's own past
+    # values (t-2 and earlier), so this never touches day-t's actual RV.
+    def _last_pct(x):
+        return float((x <= x[-1]).mean())
+    d["rv1_pctile"] = d["rv1"].rolling(252, min_periods=252).apply(_last_pct, raw=True)
+
     return d.dropna()
 
 
@@ -208,12 +215,25 @@ class ModelSpec:
         else:
             mod = LinearRegression().fit(X, y)
         self.coef = (mod.intercept_, mod.coef_)
+        if self.use_log:
+            # Jensen / smearing retransformation term: for y = log(RV) = Xb + eps,
+            # E[RV|X] = exp(Xb) * E[exp(eps)]; under eps ~ N(0, sigma^2) this is
+            # exp(Xb) * exp(sigma^2/2), NOT exp(Xb) alone. Without this factor,
+            # exp(Xb) estimates the MEDIAN of RV, not the MEAN, and is systematically
+            # too low (exp is convex). sigma^2 is the in-sample residual variance of
+            # THIS fit, i.e. computed over the same expanding window as the fit itself
+            # (recomputed every refit alongside the coefficients -- never uses data
+            # past the current `hist` cutoff).
+            resid = y - mod.predict(X)
+            self.log_resid_var = float(np.var(resid, ddof=1))
+        else:
+            self.log_resid_var = None
 
     def predict(self, row):
         x = np.array([row[f] for f in self.features])
         pred = self.coef[0] + np.dot(self.coef[1], x)
         if self.use_log:
-            pred = np.exp(pred)
+            pred = np.exp(pred) * np.exp(self.log_resid_var / 2.0)
         return max(pred, 1e-4)
 
 
@@ -234,18 +254,22 @@ MODELS = {
 # 4. WALK-FORWARD ENGINE
 # ─────────────────────────────────────────────────────────────────
 
-def walk_forward(data, test_months=18, refit_freq=21, min_train=500, sim_paths=500):
+def walk_forward(data, test_months=18, refit_freq=21, min_train=500, sim_paths=500, m9_param_log=None):
+    """m9_param_log: optional list; if provided, (refit_date, c, k) tuples for M9's
+    logistic weighting parameters are appended to it at every refit, for audit."""
     split_date = data.index[-1] - pd.DateOffset(months=test_months)
     test_data = data[data.index > split_date]
     test_dates = test_data.index
     log.info(f"Test: {test_dates[0].date()} -> {test_dates[-1].date()} ({len(test_dates)} obs)")
 
-    results = {name: [] for name in list(MODELS.keys()) + ["M2 EGARCH", "M2b Corrected EGARCH", "M3 Combined"]}
+    results = {name: [] for name in list(MODELS.keys()) + ["M2 EGARCH", "M2b Corrected EGARCH", "M3 Combined", "M9 Regime"]}
     actuals = []
 
     eg_params = None
     comb_coef = None
     eg_alpha, eg_beta = 0.0, 1.0
+    m9_c, m9_k = 0.5, 1.0
+    M9_K_CAP = 20.0
 
     for i, tdate in enumerate(test_dates):
         hist = data[data.index < tdate]
@@ -284,6 +308,31 @@ def walk_forward(data, test_months=18, refit_freq=21, min_train=500, sim_paths=5
             comb_mod = LinearRegression().fit(X_comb, y_comb)
             comb_coef = (comb_mod.intercept_, comb_mod.coef_)
 
+            # Task 4 (M9): fit logistic weighting (c, k) on in-sample fitted values,
+            # over the SAME expanding hist window as everything else above -- never
+            # uses data at or past tdate. har_fitted / eg_cv_corr are in-sample fitted
+            # series (same pattern already used for M2b's own MZ correction).
+            har_spec = MODELS["M1 HAR+TS"]
+            X_har_hist = hist[har_spec.features].values[-n_a:]
+            har_fitted = np.maximum(har_spec.coef[0] + X_har_hist @ har_spec.coef[1], 1e-4)
+            eg_cv_corr_floor = np.maximum(eg_cv_corr, 1e-4)
+            p_hist = hist["rv1_pctile"].values[-n_a:]
+            y9 = hist["rv"].values[-n_a:]
+            valid9 = np.isfinite(p_hist)
+
+            best_c, best_k, best_loss = 0.5, 1.0, np.inf
+            for c_try in np.arange(0.10, 0.901, 0.05):
+                for k_try in range(1, int(M9_K_CAP) + 1):
+                    w_try = 1.0 / (1.0 + np.exp(-k_try * (p_hist[valid9] - c_try)))
+                    pred9_try = np.maximum(
+                        w_try * eg_cv_corr_floor[valid9] + (1 - w_try) * har_fitted[valid9], 1e-4)
+                    loss_try = qlike(y9[valid9], pred9_try)
+                    if loss_try < best_loss:
+                        best_loss, best_c, best_k = loss_try, float(c_try), float(k_try)
+            m9_c, m9_k = best_c, min(best_k, M9_K_CAP)
+            if m9_param_log is not None:
+                m9_param_log.append({"refit_date": tdate, "c": m9_c, "k": m9_k, "train_qlike": best_loss})
+
         # EGARCH filter with fixed params
         am_fix = arch_model(hist["return"], vol="EGARCH", p=1, o=1, q=1, dist="t", rescale=False)
         eg_fixed = am_fix.fix(eg_params)
@@ -310,6 +359,18 @@ def walk_forward(data, test_months=18, refit_freq=21, min_train=500, sim_paths=5
         x_comb = np.array([row["rv1"], row["rv2"], row["rv5"], row["rv22"], eg_pred_corr])
         comb_pred = float(comb_coef[0] + np.dot(comb_coef[1], x_comb))
         results["M3 Combined"].append(max(comb_pred, 1e-4))
+
+        # M9 Regime-weighted: logistic(p_t; c, k) blend of M1 HAR+TS and M2b Corrected
+        # EGARCH. p_t = row["rv1_pctile"], already ex-ante (rv1 shift(1) ranked against
+        # its own trailing 252-day past window) -- never touches today's actual RV.
+        p_t = row["rv1_pctile"]
+        if np.isfinite(p_t):
+            w9 = 1.0 / (1.0 + np.exp(-m9_k * (float(p_t) - m9_c)))
+        else:
+            w9 = 0.5
+        m1_today = results["M1 HAR+TS"][-1]
+        m9_pred = w9 * max(eg_pred_corr, 1e-4) + (1 - w9) * m1_today
+        results["M9 Regime"].append(max(m9_pred, 1e-4))
 
         actuals.append(float(row["rv"]))
 
