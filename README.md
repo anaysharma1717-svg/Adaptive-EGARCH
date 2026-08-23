@@ -75,34 +75,50 @@ This is deliberately not hidden in an appendix:
 
 ## Repository structure
 
+Two layers, deliberately kept separate:
+
+**Read layer** — `research/01_*.py` through `research/07_*.py`. Clean, numbered, heavily-commented scripts that each answer one question and reproduce the exact already-saved numbers from `research/results/`. Start here if you want to understand the project.
+
+**Compute layer** — `research/extended_model_zoo.py` (the core engine: data, features, all model definitions, DM test, MZ regression) plus `stepB1-4_*.py`, `taskA_m9_regime_eval.py`, `task1_dm_significance.py`, `task3_loghar_fix.py`, `appendix_h5_and_macro.py`. This is where the EGARCH walk-forward is actually fit, refit, and simulated — the code that originally produced every number the read layer reproduces. Kept, not deleted, because it's the only way to regenerate results from raw data; the read layer only replays already-computed CSVs.
+
 ```
 research/
-  extended_model_zoo.py       # core engine: data, features, all model definitions, DM test, MZ regression
-  task1_dm_significance.py    # Task 1: crisis-regime DM test
-  task3_loghar_fix.py         # Task 3: Jensen-retransformation bug fix, before/after
-  taskA_m9_regime_eval.py     # Task 4/A: M9 build + full evaluation
-  stepB1_diagnostic_regime_mz.py  # Step 1: diagnosing the calm-dominated correction
-  stepB2_m2c_m9c.py           # Step 2: regime-split correction
-  stepB3_m2d_m9d.py           # Step 3: QLIKE-fit correction
-  stepB4_m2e_m9e.py           # Step 4: regime-switched application
-  results/                    # every metric, DM test, and per-day forecast, as CSV
-  pairs_trading/               # shelved pilot: 3 futures pairs, cointegration screen, all failed the tradeability bar
+  01_data_and_rv_engine.py             data, Garman-Klass RV, ACF/PACF
+  02_model_comparison.py               the 8-model + M2/M2b/M3 comparison
+  03_crisis_regime_test.py             the crisis DM tests (both the null-result
+                                        original test and the p=0.008 discovery)
+  04_bias_correction_chain.py          M2b -> M2c -> M2d -> M2e, why each step happened
+  05_regime_weighted_combination.py    M9 -> M9c -> M9d -> M9e
+  06_horizon_and_calendar_appendix.py  h=5 replication, FOMC dummy
+  07_pairs_trading_pilot.py            six pre-specified pairs, null result
+
+  extended_model_zoo.py                core engine (compute layer)
+  stepB1-4_*.py, taskA_*.py, task1/3_*.py, appendix_h5_and_macro.py   (compute layer)
+  results/                             every metric, DM test, per-day forecast, as CSV
+  pairs_trading/                       shelved pilot: data + results, cointegration/half-life analysis
 ```
 
 ## How to run it
 
 ```bash
 pip install -r requirements.txt
-python research/extended_model_zoo.py          # core 8-model + M2/M2b/M3/M9 comparison
-python research/task1_dm_significance.py        # crisis DM test
-python research/taskA_m9_regime_eval.py         # M9 full evaluation
-python research/stepB1_diagnostic_regime_mz.py  # regime-diagnosis chain
+
+# read layer -- fast, just reproduces already-saved numbers
+python research/01_data_and_rv_engine.py
+python research/02_model_comparison.py
+python research/03_crisis_regime_test.py
+python research/04_bias_correction_chain.py
+python research/05_regime_weighted_combination.py
+python research/06_horizon_and_calendar_appendix.py
+python research/07_pairs_trading_pilot.py
+
+# compute layer -- slow, actually refits EGARCH via simulation from raw data
+python research/extended_model_zoo.py
+python research/stepB1_diagnostic_regime_mz.py
 python research/stepB2_m2c_m9c.py
 python research/stepB3_m2d_m9d.py
 python research/stepB4_m2e_m9e.py
 ```
-
-Each script fetches SPY via `yfinance`, refits EGARCH via `arch`, and writes its results to `research/results/`.
 
 ## Tech stack
 

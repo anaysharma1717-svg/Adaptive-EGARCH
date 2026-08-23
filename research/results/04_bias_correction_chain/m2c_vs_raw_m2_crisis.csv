@@ -1,0 +1,3 @@
+comparison,subsample,loss,N,dm_stat,p_value
+M2c vs raw M2,crisis,qlike,38,-4.222692593973005,0.00015059951051510367
+M2c vs raw M2,crisis,mse,38,-1.7305848075220474,0.09185941766670824

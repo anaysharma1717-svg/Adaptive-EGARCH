@@ -1,0 +1,7 @@
+comparison,subsample,loss,N,dm_stat,p_value
+M2d-regime vs raw M2 [KEY],crisis,qlike,38,-4.153257521821437,0.0001852478008275
+M2d-regime vs raw M2 [KEY],crisis,mse,38,-1.3773677669049602,0.1766742320581626
+M2d-regime vs M2c,crisis,qlike,38,3.6258791683863913,0.0008621725114428
+M2d-regime vs M2c,crisis,mse,38,6.403665797433821,1.787560284238765e-07
+M2d-pooled vs M2b,crisis,qlike,38,2.158905386174767,0.0374129253731012
+M2d-pooled vs M2b,crisis,mse,38,-0.2045775594619001,0.8390234120507016

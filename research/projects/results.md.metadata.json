@@ -1,5 +1,0 @@
-{
-  "summary": "Full run results from egarch_vs_garch.py on SPY 2015-2026:\n- 2,890 trading days, kurtosis 14.44 (extreme fat tails)\n- EGARCH Student-t wins AIC/BIC vs GARCH and vs Normal EGARCH\n- Leverage effect (gamma = -0.179, p < 0.0001) definitively confirmed\n- OOS test period (Jan-Jul 2026): GARCH wins on RMSE by 4.56%\n- Key insight: EGARCH has superior in-sample fit (AIC 7147 vs 7466) but the H1 2026 test window was an unusual symmetric-shock regime\n- Chart saved as egarch_vs_garch.png",
-  "updatedAt": "2026-07-02T19:50:28.974631700Z",
-  "userFacing": true
-}
