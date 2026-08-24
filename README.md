@@ -1,6 +1,6 @@
-<title>Adaptive EGARCH</title>
+<title>Regime-Dependent Volatility Forecasting</title>
 
-# Adaptive EGARCH — SPY Volatility Forecasting
+# Regime-Dependent Volatility Forecasting — SPY, EGARCH vs. HAR baselines
 
 **Question:** can next-day S&P 500 volatility be forecast better than a simple statistical baseline, and does a documented volatility-forecasting model's edge during market crises survive the standard fix for that model's known bias? **Headline finding:** yes to the first (marginally, and not with statistical significance across the board) — a static combination model is the best all-round forecaster, but no significance test in this project shows it, or anything else, *significantly* beating the simplest baseline overall. For the second question: no — a real, statistically significant crisis-period edge exists in one specific model, and every method tried to preserve it through bias correction measurably weakens or destroys it.
 

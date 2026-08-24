@@ -80,7 +80,7 @@ ax.set_title("Top-decile realized-volatility days, out-of-sample walk-forward te
              fontsize=10.5, color=INK_MUTED, loc="left", pad=14)
 
 fig.text(0.01, 0.005,
-         "Adaptive EGARCH — SPY volatility forecasting  ·  github.com/anaysharma1717-svg/Adaptive-EGARCH",
+         "Regime-Dependent Volatility Forecasting  ·  github.com/anaysharma1717-svg/Regime-Dependent-Volatility-Forecasting",
          fontsize=8.5, color=INK_MUTED, ha="left")
 
 fig.tight_layout(rect=[0, 0.03, 1, 0.95])
