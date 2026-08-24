@@ -129,3 +129,7 @@ python research/pipeline/task1_dm_significance.py
 ```
 
 **Dependencies** (`requirements.txt`): `yfinance`, `arch` (EGARCH/GARCH), `scikit-learn` (OLS/Ridge), `statsmodels` (ADF, ACF/PACF, Ljung-Box), `scipy` (DM/MZ test statistics, QLIKE numerical fitting), `pandas`, `numpy`, `matplotlib`.
+
+## License
+
+[MIT](LICENSE)
