@@ -68,6 +68,10 @@ M1 HAR+TS (lagged-RV OLS baseline) · M2 raw EGARCH(1,1,1,t) · M2b bias-correct
 
 This is real and significant. It's also the model ranked *worst* overall (M2, RMSE 0.435) — a real edge, hiding inside a model that looks bad on average. That combination is what makes the rest of this project worth doing.
 
+![Raw EGARCH has a real crisis-day edge, and every standard fix for its bias erases it](research/results/headline_crisis_edge.png)
+
+*Crisis-regime QLIKE by model (N=38, out-of-sample). Regenerate with `python research/07_headline_chart.py`.*
+
 ## 4. The correction chain: M2b → M2e
 
 EGARCH's known bias is normally fixed with an MZ correction (§2) — that's exactly what M2b already is. The question this chain answers: **does that standard fix preserve the crisis edge, or erase it?** Four iterations, each one a direct response to what the previous one found — not four independent experiments.
