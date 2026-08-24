@@ -10,9 +10,8 @@
 3. [Headline finding](#3-headline-finding)
 4. [The correction chain: M2b → M2e](#4-the-correction-chain-m2b--m2e)
 5. [Appendix: horizon and calendar robustness checks](#5-appendix-horizon-and-calendar-robustness-checks)
-6. [Pairs-trading pilot](#6-pairs-trading-pilot)
-7. [Limitations](#7-limitations)
-8. [How to reproduce](#8-how-to-reproduce)
+6. [Limitations](#6-limitations)
+7. [How to reproduce](#7-how-to-reproduce)
 
 ---
 
@@ -91,22 +90,18 @@ Two checks on whether the headline crisis finding is fragile, run after the main
 
 **FOMC-announcement dummy:** does knowing a day is a scheduled Fed announcement day improve the baseline model? **Large effect, underpowered test:** the coefficient is real and highly significant in-sample (+0.224, t=7.17, p<0.0001 — FOMC days are more volatile, as expected), and out-of-sample error on FOMC days themselves drops substantially (QLIKE 0.593 → 0.141). But with only 12 FOMC days in the 376-day test window, no DM test reaches significance (p=0.17–0.39). This is a real effect the test is underpowered to confirm, not a null result — those are different things and this project keeps them distinct.
 
-## 6. Pairs-trading pilot
-
-A separate, smaller pilot, not connected to the volatility-forecasting work above: are any of six hand-picked, economically-linked futures pairs (Treasury curve, large-cap vs. tech, large-cap vs. small-cap, tech vs. small-cap, precious vs. industrial metals, gold vs. silver) statistically tradeable? Fixed criteria, set before looking at results: mean-reversion half-life between 5 and 60 days, >30% cointegration pass rate, cointegrated in a recent window, ADF p<0.05. **Result: zero of six pairs qualify.** The best candidate (Treasury curve, expected to be the strongest) still had a 140-day half-life — nearly 2.5× the upper bound of the tradeable range. A seventh, originally-planned pair (crude oil vs. natural gas) was dropped before analysis: WTI crude traded genuinely negative on 2020-04-20, which makes log-space cointegration undefined across that window, and patching it would have been an unprincipled judgment call.
-
-## 7. Limitations
+## 6. Limitations
 
 - **Daily range-based volatility, not intraday.** GK-RV uses daily OHLC, not tick data — a real ceiling on how precisely "true" volatility is measured here.
 - **N=38 crisis subsample.** The central finding rests on 38 out-of-sample crisis days. Real and significant, but a small sample — later results (§4, §5) sometimes flip on small movements within it.
 - **~127 Diebold-Mariano tests were run over the course of this investigation** (crisis test → M9's failure → the M2b diagnosis → M2c/M2d/M2e → the M9 combination chain → the two robustness checks), plus a further ~18 summary comparisons added when this README's tables were assembled. This is disclosed, not hidden, because of the multiple-comparisons problem: at a 5% threshold, a handful of false positives are expected by chance alone across that many tests. No formal correction (e.g. Bonferroni) is applied, because each test followed from a specific question the *prior* result raised — this was an iterative investigation, not a search across many independent hypotheses for the first one to clear p<0.05. That said, any single nominally-significant result here should be read with that base rate in mind.
 - **No trading strategy, backtest, or profitability claim of any kind exists in this project.** Everything above is a forecast-accuracy comparison, evaluated on statistical loss functions (RMSE/MAE/QLIKE) and significance tests (DM/MZ) — not a P&L, not a position-sizing rule, not a deployment.
 
-## 8. How to reproduce
+## 7. How to reproduce
 
-`research/pipeline/` contains the original analysis scripts, run in sequence (see `research/pipeline/README.md` for the exact order — Task 1 → Task 3 → Task 4/Task A → Step 1 → Step 2 → Step 3 → Step 4 → h=5/FOMC appendix → pairs pilot), that produced every result in this project.
+`research/pipeline/` contains the original analysis scripts, run in sequence (see `research/pipeline/README.md` for the exact order — Task 1 → Task 3 → Task 4/Task A → Step 1 → Step 2 → Step 3 → Step 4 → h=5/FOMC appendix), that produced every result in this project.
 
-`research/01-07` are a **verification/walkthrough layer**, not the analysis itself: `01` reproduces the volatility engine from scratch (re-fetches data, rebuilds RV and ACF/PACF); `02-04` recompute statistical tests (metrics, DM tests, MZ regressions) from already-saved forecasts, without re-fitting any model; `05-07` display already-computed results as-is, each with a pointer in its own docstring to the exact `research/pipeline/` script that actually produced what it's showing.
+`research/01-06` are a **verification/walkthrough layer**, not the analysis itself: `01` reproduces the volatility engine from scratch (re-fetches data, rebuilds RV and ACF/PACF); `02-04` recompute statistical tests (metrics, DM tests, MZ regressions) from already-saved forecasts, without re-fitting any model; `05-06` display already-computed results as-is, each with a pointer in its own docstring to the exact `research/pipeline/` script that actually produced what it's showing.
 
 | Result | Verification script | Original computation |
 |---|---|---|
@@ -116,13 +111,12 @@ A separate, smaller pilot, not connected to the volatility-forecasting work abov
 | §4 correction chain (M2b–M2e) | `research/04_bias_correction_chain.py` | `research/pipeline/stepB1-4_*.py` |
 | §4 combination chain (M9–M9e) | `research/05_regime_weighted_combination.py` | `research/pipeline/taskA_m9_regime_eval.py`, `stepB2-4_*.py` |
 | §5 h=5 / FOMC appendix | `research/06_horizon_and_calendar_appendix.py` | `research/pipeline/appendix_h5_and_macro.py` |
-| §6 pairs-trading pilot | `research/07_pairs_trading_pilot.py` | *(driver scripts already removed — see `research/pairs_trading/results/`)* |
 
 ```bash
 pip install -r requirements.txt
 
 # verification layer -- fast, replays already-saved numbers
-python research/01_data_and_rv_engine.py   # ... through 07_pairs_trading_pilot.py
+python research/01_data_and_rv_engine.py   # ... through 06_horizon_and_calendar_appendix.py
 
 # pipeline -- slow, actually re-fits/refits models against real data
 python research/pipeline/extended_model_zoo.py

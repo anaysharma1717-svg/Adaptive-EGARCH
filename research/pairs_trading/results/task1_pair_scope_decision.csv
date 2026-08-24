@@ -1,9 +1,0 @@
-pair,status,reason
-GC=F/SI=F,ACTIVE (not viable as-is),"OU half-life 90.5 days, outside the 5-60d tradeable band."
-CL=F/NG=F,DROPPED,"CL=F close is negative on 2020-04-20 (-37.63) and 2020-04-21's prior close is that same negative value (see task1_invalid_log_returns.csv). log-space cointegration/hedge-ratio/spread is undefined across this window; any patch (clip/shift/drop-two-days) would be an unprincipled judgment call. Pair dropped entirely, not patched."
-ES=F/YM=F,DROPPED,"Fails the tradeability bar found in Task 1's pipeline: OU half-life 125.1 days (outside the 5-60d tradeable band), full-sample ADF p=0.057 (not stationary at 5%), zero cointegrated refit windows since late 2019, and the hedge ratio drifted monotonically from beta=1.15 (2015) to beta=0.81 (2026) rather than mean-reverting. Not a data issue -- a statistical result. Dropped from all further pair work; not included in Task 1B."
-ZB=F/ZN=F,ACTIVE,
-ES=F/NQ=F,ACTIVE,
-ES=F/RTY=F,ACTIVE,
-NQ=F/RTY=F,ACTIVE,
-GC=F/HG=F,ACTIVE,

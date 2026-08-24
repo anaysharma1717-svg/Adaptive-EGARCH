@@ -21,6 +21,5 @@ Actual chronological order:
 | 6 | `stepB3_m2d_m9d.py` | **Step 3**: M2d/M9d — refit the correction to minimize QLIKE instead of squared error. The motivating prediction (QLIKE-fit beta should be higher) was falsified; still an improvement, still not enough. |
 | 7 | `stepB4_m2e_m9e.py` | **Step 4**: M2e/M9e — stop correcting in crisis entirely, use raw EGARCH there. Best numbers of the chain, still not statistically significant against the static M3 baseline. |
 | 8 | `appendix_h5_and_macro.py` | Post-hoc robustness checks: does the crisis edge replicate at a 5-day horizon? Does a single FOMC-announcement dummy help M1? Both "real effect, doesn't cleanly confirm" results. |
-| 9 | *(pairs-trading pilot)* | The six-pairs cointegration pilot's driver scripts were already removed in an earlier cleanup pass (kept data + results only, per an explicit scope decision at the time) — see `research/pairs_trading/results/` for the six-pair outcome (zero pairs met the tradeability bar). No script remains here to run for this stage. |
 
-Every script writes its output to `research/results/` (or `research/results/appendix_horizon_calendar/` for stage 8). Those CSVs are what `research/01-07` reads back.
+Every script writes its output to `research/results/` (or `research/results/appendix_horizon_calendar/` for stage 8). Those CSVs are what `research/01-06` reads back.
